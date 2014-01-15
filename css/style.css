@@ -1,0 +1,103 @@
+@charset "utf-8";
+/* CSS Document */
+
+#kento-star-rate{}
+
+#kento-star-rate .ksr-holder {
+
+  height: auto;
+  width: auto;
+}
+
+
+
+
+
+#kento-star-rate ul li {
+  background: url("stars/star-5.png");
+  background-size:100%;
+  cursor: pointer;
+  display: inline-block;
+  height: 30px;
+  margin-left: 0;
+  text-align: center;
+  width: 30px ;
+  background-color: #DDDDDD;
+  background-repeat:no-repeat;
+  
+}
+
+
+.ksr-rate-status
+	{
+	display:none;
+	font-size:12px;
+	}
+.ksr-rate-status
+	{
+		color:#00a914;
+	}
+.ksr-already-rate{
+	color:#e65454;
+}
+	
+.ksr-logged{
+	color:#e65454;}
+
+.ksr-logged a{
+	color:#AA2727 !important;
+	font-weight:bold !important;
+	
+	}
+
+
+.ksr-thanks{
+	color:#00a914;
+	}
+
+#ksr-bg-color, #ksr-mouseenter-color, #ksr-currentrate-color{
+	display:none;}
+
+
+#ksr-star-design {
+  width: 280px;
+  height: 40px;
+  background-color:#aeaeae;
+  background-size: 200px auto;
+  background-repeat: no-repeat;
+  background-position: 60px 0;
+}
+#ksr-star-design option {
+  background-position: 60px 0;
+  background-repeat: no-repeat;
+  background-size: 200px auto;
+  border-bottom: 2px solid;
+  display: block;
+  height: 40px;
+  background-color:#aeaeae;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

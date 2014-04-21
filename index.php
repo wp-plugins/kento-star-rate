@@ -2,8 +2,8 @@
 /*
 Plugin Name: Kento Star Rate
 Plugin URI: http://kentothemes.com
-Description: Star Rating for post
-Version: 1.0
+Description: Star Rating for post.
+Version: 1.1
 Author: KentoThemes
 Author URI: http://kentothemes.com
 License: GPLv2 or later
@@ -11,30 +11,28 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
 
 
-wp_enqueue_script('jquery');
+
 define('KENTO_STAR_RATE_PLUGIN_PATH', WP_PLUGIN_URL . '/' . plugin_basename( dirname(__FILE__) ) . '/' );
-wp_enqueue_style('kento-star-rate-style', KENTO_STAR_RATE_PLUGIN_PATH.'css/style.css');
-
-wp_enqueue_script('kento_star_rate_ajax_js', plugins_url( '/js/kento-star-rate-ajax.js' , __FILE__ ) , array( 'jquery' ));
-wp_localize_script( 'kento_star_rate_ajax_js', 'kento_star_rate_ajax', array( 'kento_star_rate_ajaxurl' => admin_url( 'admin-ajax.php')));
 
 
 
-
+function ksr_init_script()
+	{
+		wp_enqueue_script('jquery');
+		wp_enqueue_style('kento-star-rate-style', KENTO_STAR_RATE_PLUGIN_PATH.'css/style.css');
+		wp_enqueue_script('kento_star_rate_ajax_js', plugins_url( '/js/kento-star-rate-ajax.js' , __FILE__ ) , array( 'jquery' ));
+		wp_localize_script( 'kento_star_rate_ajax_js', 'kento_star_rate_ajax', array( 'kento_star_rate_ajaxurl' => admin_url( 'admin-ajax.php')));
+	}
+	
+add_action("init","ksr_init_script");
             
 			
-			
-			                                         
-register_activation_hook(__FILE__, kento_star_rate_install());
-
-
-
-
+register_activation_hook(__FILE__, 'kento_star_rate_install');
 
 function kento_star_rate_install()
 	{
 	global $wpdb;
-        $sql = "CREATE TABLE IF NOT EXISTS " . $wpdb->prefix . "ksr"
+       $sql = "CREATE TABLE IF NOT EXISTS " . $wpdb->prefix . "ksr"
                  ."( UNIQUE KEY id (id),
 					id int(100) NOT NULL AUTO_INCREMENT,
 					postid  int(10) NOT NULL,
@@ -55,14 +53,14 @@ function kento_star_rate_install()
 
 function kento_star_rate_drop() {
 	
-if ( get_option('kento_star_rate_deletion') == 1 )
+if ( get_option('ksr_deletion') == 1 )
 	{
 		delete_option('ksr_bg_color');
 		delete_option('ksr_mouseenter_color');	
 		delete_option('ksr_currentrate_color');	
 		delete_option('ksr_star_size');	
 		delete_option('ksr_star_design');			
-		delete_option('kento_star_rate_deletion');	
+		delete_option('ksr_deletion');	
 		global $wpdb;
 		$table = $wpdb->prefix . "ksr";
 		$wpdb->query('DROP TABLE IF EXISTS ' . $wpdb->prefix . 'ksr');
@@ -75,7 +73,7 @@ if ( get_option('kento_star_rate_deletion') == 1 )
 	
 }
 
-if ( get_option('kento_star_rate_deletion') == 1 ) {
+if ( get_option('ksr_deletion') == 1 ) {
 	register_uninstall_hook( __FILE__, 'kento_star_rate_drop' );
 }
 
@@ -84,9 +82,23 @@ if ( get_option('kento_star_rate_deletion') == 1 ) {
 
 
 function kento_star_rate_ajax()
-	{
-		$post_id = (int)$_POST['post_id'];
-		$star_rate = (int)$_POST['star_rate'];
+	{	
+		if(isset($_POST['post_id']))
+			{
+				$post_id = (int)$_POST['post_id'];
+			}
+		else
+			{
+				$post_id = 0;
+			}
+		if(isset($_POST['star_rate']))
+			{
+				$star_rate = (int)$_POST['star_rate'];
+			}
+		else
+			{
+				$star_rate = 0;
+			}
 		
 		$userid = get_current_user_id();
 		if(is_user_logged_in())
@@ -109,6 +121,10 @@ function kento_star_rate_ajax()
 						$table = $wpdb->prefix . "ksr";
 						$result = $wpdb->get_results("SELECT * FROM $table WHERE postid = $post_id", ARRAY_A);
 						$already_rated = $wpdb->num_rows;
+						if(empty($already_rated))
+							{
+								$already_rated = 0;
+							}
 						
 						if($already_rated > 0 )
 							{
@@ -121,7 +137,7 @@ function kento_star_rate_ajax()
 							{
 							$wpdb->insert(	$table, 	
 											array( 	'id' => '', 'postid' => $post_id,'rate' => $star_rate,'count' => 1,	),
-											array('%d', '%d',	'%d','%d')
+											array('%d', '%d', '%d','%d')
 										);
 
 							}
@@ -177,16 +193,25 @@ function kento_star_rate_frontend($ksr)
 	{
 		
 		$ksr_bg_color = get_option( 'ksr_bg_color' );
-		$ksr_mouseenter_color = get_option( 'ksr_mouseenter_color' );			
+		if(empty($ksr_bg_color))
+			{
+				$ksr_bg_color = "#038a52";
+			}
+						
 		$ksr_currentrate_color = get_option( 'ksr_currentrate_color' );
-		$rated = kento_star_rate_count_rate(get_the_id());
+		if(empty($ksr_currentrate_color))
+			{
+			$ksr_currentrate_color = "#03ff97";
+			}			
+		
+		$rated = ceil(kento_star_rate_count_rate(get_the_id()));
 		
 		
 		
 		
 		
 		$ksr.=	"<div id='kento-star-rate'>";
-		$ksr.=		"<div class='ksr-holder' currentrate='".kento_star_rate_count_rate(get_the_id())."' >";
+		$ksr.=		"<div class='ksr-holder' vote_count='".ksr_total_vote(get_the_id())."' currentrate='".ceil(kento_star_rate_count_rate(get_the_id()))."' >";
 		$ksr.=		"<ul id='ksr-stars-".get_the_id()."'>";
 		for($i=1; $i<=5;$i++)
 			{
@@ -214,12 +239,9 @@ function kento_star_rate_frontend($ksr)
 		$ksr.= "</style>";
 		
 		$ksr.=		"</div>";
-		
-		$ksr.= "<span id='ksr-bg-color'>".get_option( 'ksr_bg_color' )."</span>";
-		$ksr.= "<span id='ksr-mouseenter-color'>".get_option( 'ksr_mouseenter_color' )."</span>";
-		$ksr.= "<span id='ksr-currentrate-color'>".get_option( 'ksr_currentrate_color' )."</span>";
-		
-		$ksr.=	"<div class='ksr-rate-status-".get_the_id()."'></div>";
+
+		$ksr.=	"<div class='ksr-rate-bubble'>Rate: ".kento_star_rate_count_rate(get_the_id())."</div>";
+		$ksr.=	"<div class='ksr-rate-status-".get_the_id()." ksr-rate-status'></div>";
 		$ksr.=	"</div>";
 		
 		return $ksr;
@@ -230,11 +252,59 @@ function kento_star_rate_frontend($ksr)
 add_filter('the_content', 'kento_star_rate_frontend');
 
 
+
+
+function ksr_frontend_style_colors()
+	{
+		$ksr_bg_color = get_option( 'ksr_bg_color' );
+		if(empty($ksr_bg_color))
+			{
+				$ksr_bg_color = "#038a52";
+			}
+		$ksr_mouseenter_color = get_option( 'ksr_mouseenter_color' );	
+		if(empty($ksr_mouseenter_color))
+			{
+			$ksr_mouseenter_color = "#89ffce";
+			}	
+						
+		$ksr_currentrate_color = get_option( 'ksr_currentrate_color' );
+		if(empty($ksr_currentrate_color))
+			{
+			$ksr_currentrate_color = "#03ff97";
+			}
+			
+		echo "<span id='ksr-bg-color'>".$ksr_bg_color."</span>";
+		echo "<span id='ksr-mouseenter-color'>".$ksr_mouseenter_color."</span>";
+		echo "<span id='ksr-currentrate-color'>".$ksr_currentrate_color."</span>";
+	}
+
+add_filter('wp_head', 'ksr_frontend_style_colors');
+
+
+
+
+
+
+
+
+
+
+
 function kento_star_rate_style()
 	{	
 	
 		$ksr_star_size = get_option( 'ksr_star_size' );
+		if(empty($ksr_star_size))
+			{
+			$ksr_star_size = "25";
+			}
 		$ksr_star_design = get_option( 'ksr_star_design' );
+		
+		if(empty($ksr_star_design))
+			{
+			$ksr_star_design = "star-5.png";
+			}	
+		
 		echo "
 		
 		<style type='text/css'>
@@ -262,12 +332,32 @@ function kento_star_rate_count_rate($post_id)
 		global $wpdb;
 		$table = $wpdb->prefix . "ksr";
 		$result = $wpdb->get_results("SELECT * FROM $table WHERE postid = $post_id", ARRAY_A);
-		$rate = $result[0]['rate'];
-		$count = $result[0]['count'];
+		
+		
+		if(empty($result[0]['rate']))
+			{
+				$rate = 0;
+			}
+		else
+			{
+				$rate = $result[0]['rate'];
+			
+			}
+			
+		if(empty($result[0]['count']))
+			{
+				$count = 0;
+			}
+		else
+			{
+				$count = $result[0]['count'];
+			}			
+			
+			
 		
 		if($rate>0 AND $count>0)
 			{
-				return ceil($rate/$count);
+				return $rate/$count;
 			}
 		else
 			{
@@ -277,7 +367,24 @@ function kento_star_rate_count_rate($post_id)
 		
 		}
 
-
+function ksr_total_vote($post_id)
+	{
+		global $wpdb;
+		$table = $wpdb->prefix . "ksr";
+		$result = $wpdb->get_results("SELECT count FROM $table WHERE postid = $post_id", ARRAY_A);
+		
+		if(empty($result[0]['count']))
+			{
+				$count = 0;
+			}
+		else
+			{
+				$count = $result[0]['count'];
+			}
+		return $count;
+		
+		
+	}
 
 
 
@@ -290,11 +397,12 @@ function kento_star_rate_init(){
 	register_setting( 'kento_star_rate_plugin_options', 'ksr_bg_color');
 	register_setting( 'kento_star_rate_plugin_options', 'ksr_mouseenter_color');
 	register_setting( 'kento_star_rate_plugin_options', 'ksr_currentrate_color');
-	register_setting( 'kento_star_rate_plugin_options', 'ksr_star_size');	
+	register_setting( 'kento_star_rate_plugin_options', 'ksr_star_size');
 	register_setting( 'kento_star_rate_plugin_options', 'ksr_star_design');
-	register_setting( 'kento_star_rate_plugin_options', 'kento_star_rate_deletion');	
-	
+	register_setting( 'kento_star_rate_plugin_options', 'ksr_deletion');
     }
+	
+	
 function kento_star_rate_menu() {
 	add_menu_page(__('Kento Star Rate Settings','ksr'), __('KSR Settings','ksr'), 'manage_options', 'ksr_settings', 'kento_star_rate_settings');
 }

@@ -2,9 +2,9 @@
 Contributors: hasanrang05
 Donate link: 
 Tags:  ajax ratings, star ratings, post star, five star, ajax star rate
-Requires at least: 3.5
-Tested up to: 3.8
-Stable tag: 1.0
+Requires at least: 3.8
+Tested up to: 3.9
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,6 +53,12 @@ many more...
 
 
 == Changelog ==
+
+
+= 1.1 =
+* Js error fixed.
+* Adedd rate bubble.
+* Current rate display on mouseout.
 
 = 1.0 =
 * Initial release

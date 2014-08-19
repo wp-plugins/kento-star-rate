@@ -1,5 +1,5 @@
 === Kento Star Rate ===
-Contributors: hasanrang05
+Contributors: kentothemes
 Donate link: 
 Tags:  ajax ratings, star ratings, post star, five star, ajax star rate
 Requires at least: 3.8

@@ -3,7 +3,7 @@ Contributors: kentothemes
 Donate link: 
 Tags:  ajax ratings, star ratings, post star, five star, ajax star rate
 Requires at least: 3.8
-Tested up to: 3.9
+Tested up to: 4.2.2
 Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
